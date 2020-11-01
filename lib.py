@@ -38,8 +38,8 @@ class SubtitleMetadata:
 
 
 @dataclass
-class MovieLocationData:
-    nearest_location_name: str
+class MovieLocation:
+    points: typing.List[GPXPoint]
 
 
 class GPXLoader:
@@ -66,7 +66,7 @@ class GPXDatabase:
     def __init__(self, gpx_files: typing.List[str]):
         pass
 
-    def get_location_data(self, period: TimePeriod) -> MovieLocationData:
+    def get_movie_location(self, movie_time: TimePeriod) -> MovieLocation:
         pass
 
 
@@ -85,5 +85,6 @@ class SubtitleGenerator:
     def __init__(self, subtitle_metadata: SubtitleMetadata):
         pass
 
-    def write_subtitles(self, movie_location_data: MovieLocationData, movie_path: str):
+    # todo: add another layer before this to convert MovieLocation into something verbose.
+    def write_subtitles(self, movie_location: MovieLocation, movie_path: str):
         pass
