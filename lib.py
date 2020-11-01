@@ -20,6 +20,7 @@ class GPXPoint:
 @dataclass
 class GPXTrackData:
     points: typing.List[GPXPoint]
+    starting_point: GPXPoint
 
 
 @dataclass
@@ -41,17 +42,18 @@ class MovieLocationData:
 class GPXLoader:
     def __init__(self, gpx_contents: str):
         self.gpx_contents = gpx_contents
+        self._parsed_gpx = gpxpy.parse(self.gpx_contents)
 
     @property
     def track_data(self) -> GPXTrackData:
-        gpxp = gpxpy.parse(self.gpx_contents)
-        gpx_points = gpxp.tracks[0].segments[0].points
+        gpx_points = self._parsed_gpx.tracks[0].segments[0].points
         points = [
             GPXPoint(p.latitude, p.longitude)
             for p in gpx_points
         ]
         return GPXTrackData(
-            points=points
+            points=points,
+            starting_point=points[0]
         )
 
 

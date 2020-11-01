@@ -25,13 +25,13 @@ def gpx_test(gpx_contents: str) -> GPXTestCase:
     )
 
 
-def test_gpx_loader_correct_point_count(gpx_test: GPXTestCase):
+def test_gpx_loader_correct_gpx_loaded(gpx_test: GPXTestCase):
     assert hasattr(lib, "GPXLoader")
     loader = lib.GPXLoader(gpx_test.gpx_contents)
 
     actual_data = loader.track_data
     assert isinstance(actual_data, lib.GPXTrackData)
     assert len(actual_data.points) == gpx_test.point_count
-    assert actual_data.points[0] == gpx_test.starting_point
+    assert actual_data.starting_point == gpx_test.starting_point
 
 
