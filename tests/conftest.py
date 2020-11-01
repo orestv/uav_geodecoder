@@ -1,4 +1,8 @@
+import datetime
+
 import pytest
+
+import lib
 
 
 @pytest.fixture
@@ -110,3 +114,25 @@ def gpx_contents_2():
     </trkseg>
   </trk>
 </gpx>"""
+
+
+@pytest.fixture
+def movie_location() -> lib.MovieLocation:
+    return lib.MovieLocation(
+        points=[
+            lib.GPXPoint(longitude=27.7083590832049, latitude=49.4775612029395,
+                         time=datetime.datetime.fromisoformat("2020-08-23T09:36:53.400+00:00")),
+            lib.GPXPoint(longitude=27.708359075693, latitude=49.4775611492685,
+                         time=datetime.datetime.fromisoformat("2020-08-23T09:36:53.500+00:00")),
+            lib.GPXPoint(longitude=27.7083590906078, latitude=49.4775611607134,
+                         time=datetime.datetime.fromisoformat("2020-08-23T09:36:53.600+00:00")),
+            lib.GPXPoint(longitude=27.7083589214513, latitude=49.4775612767829,
+                         time=datetime.datetime.fromisoformat("2020-08-23T09:36:53.700+00:00")),
+            lib.GPXPoint(longitude=27.7083589184853, latitude=49.4775612974664,
+                         time=datetime.datetime.fromisoformat("2020-08-23T09:36:53.800+00:00")),
+            lib.GPXPoint(longitude=27.7083589250721, latitude=49.4775614029315,
+                         time=datetime.datetime.fromisoformat("2020-08-23T09:36:53.900+00:00")),
+            lib.GPXPoint(longitude=27.7083589304429, latitude=49.4775614224571,
+                         time=datetime.datetime.fromisoformat("2020-08-23T09:36:54.000+00:00")),
+        ]
+    )

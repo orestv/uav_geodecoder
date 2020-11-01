@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import typing
 
 import gpxpy
+import reverse_geocode
 
 
 @dataclass
@@ -36,6 +37,11 @@ class TimePeriod:
 @dataclass
 class SubtitleMetadata:
     pass
+
+
+@dataclass
+class POI:
+    city: str
 
 
 @dataclass
@@ -78,6 +84,15 @@ class GPXDatabase:
         return MovieLocation(
             points=matching_points
         )
+
+
+class POILocator:
+    def get_poi(self, movie_location: MovieLocation) -> POI:
+        first_point = movie_location.points[0]
+        lookup_result = reverse_geocode.get(
+            (first_point.longitude, first_point.latitude)
+        )
+        return POI(city=lookup_result["city"])
 
 
 class MovieParser:

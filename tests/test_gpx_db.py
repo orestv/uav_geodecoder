@@ -101,3 +101,17 @@ def test_gpx_loader_correct_gpx_loaded(gpx_test: GPXTestCase):
 def test_gpx_movie_points(gpx_db: lib.GPXDatabase, movie_time, expected_movie_location):
     actual_movie_location = gpx_db.get_movie_location(movie_time)
     assert actual_movie_location == expected_movie_location
+
+
+def test_get_poi(mocker: MockerFixture, movie_location: lib.MovieLocation):
+    expected_poi = lib.POI(city="Lviv")
+    mock_get_coord = mocker.patch("reverse_geocode.get")
+    mock_get_coord.return_value = {'country_code': 'UA', 'city': 'Lviv', 'country': 'Ukraine'}
+
+    locator = lib.POILocator()
+    actual_poi = locator.get_poi(movie_location)
+    assert actual_poi == expected_poi
+
+    mock_get_coord.assert_called_with(
+        (movie_location.points[0].longitude, movie_location.points[0].latitude,)
+    )
