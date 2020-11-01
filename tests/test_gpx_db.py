@@ -123,11 +123,15 @@ def test_get_poi(mocked_geolocator: mock.Mock, movie_location: lib.MovieLocation
 def test_get_poi_for_point(mocker: MockerFixture):
     point = lib.GPXPoint(49.2351317723592, 28.4581775814941, datetime.datetime.utcnow())
     mocked_response = {'country_code': 'UA', 'city': 'Lviv', 'country': 'Ukraine'}
-    mocker.patch("reverse_geocode.get").return_value = mocked_response
+    mocked_reverse_geocode = mocker.patch("reverse_geocode.get")
+    mocked_reverse_geocode.return_value = mocked_response
 
     expected_poi = lib.POI(city="Lviv")
 
     actual_poi = lib.GEOLocator().get_poi(point)
+    mocked_reverse_geocode.assert_called_with(
+        (point.latitude, point.longitude)
+    )
     assert actual_poi == expected_poi
 
 

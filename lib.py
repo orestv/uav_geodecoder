@@ -91,7 +91,7 @@ class GPXDatabase:
 class GEOLocator:
     def get_poi(self, point: GPXPoint) -> POI:
         lookup_result = reverse_geocode.get(
-            (point.longitude, point.latitude)
+            (point.latitude, point.longitude)
         )
         return POI(city=lookup_result["city"])
 
