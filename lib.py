@@ -9,6 +9,11 @@ class MovieDetails:
     pass
 
 
+@dataclass()
+class GPXTrackData:
+    pass
+
+
 @dataclass
 class TimePeriod:
     start: datetime.datetime
@@ -23,6 +28,15 @@ class SubtitleMetadata:
 @dataclass
 class MovieLocationData:
     nearest_location_name: str
+
+
+class GPXLoader:
+    def __init__(self, gpx_contents: str):
+        self.gpx_contents = gpx_contents
+
+    @property
+    def track_data(self) -> GPXTrackData:
+        return GPXTrackData()
 
 
 class GPXDatabase:
