@@ -1,5 +1,7 @@
 import datetime
 import itertools
+import os
+import subprocess
 from dataclasses import dataclass
 
 import typing
@@ -104,11 +106,42 @@ class POILocator:
 
 
 class MovieParser:
-    def __init__(self, movie_file_path):
-        pass
+    def __init__(self, movie_path):
+        self.movie_path = movie_path
 
     def get_period(self) -> TimePeriod:
-        pass
+        fprobe = self._get_fprobe()
+        parsed_fprobe = self._parse_fprobe(fprobe)
+        return self._get_time_period(parsed_fprobe)
+
+    def _get_time_period(self, parsed_fprobe: typing.Dict[str, str]) -> TimePeriod:
+        s_creation_time = parsed_fprobe["TAG:creation_time"]
+        s_duration_seconds = parsed_fprobe["duration"]
+
+        s_creation_time_isoformat = s_creation_time.replace("Z", "+00:00")
+        delta = datetime.timedelta(seconds=float(s_duration_seconds))
+        start = datetime.datetime.fromisoformat(s_creation_time_isoformat)
+        end = start + delta
+        return TimePeriod(start, end)
+
+    def _get_fprobe(self) -> str:
+        """ffprobe -v error -show_format DJI_0257.MP4"""
+        cmd = f'ffprobe -i "{self.movie_path}" -show_format'
+        output = subprocess.check_output(
+            cmd,
+            shell=True,  # Let this run in the shell
+            stderr=subprocess.STDOUT
+        )
+        return output.decode("utf-8")
+
+    def _parse_fprobe(self, fprobe: str) -> dict:
+        result = {}
+        for line in fprobe.split(os.linesep):
+            if "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            result[key] = value
+        return result
 
     def get_subtitle_metadata(self) -> SubtitleMetadata:
         pass

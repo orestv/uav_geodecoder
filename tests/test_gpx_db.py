@@ -129,3 +129,60 @@ def test_get_poi_for_point(mocker: MockerFixture):
 
     actual_poi = lib.GEOLocator().get_poi(point)
     assert actual_poi == expected_poi
+
+
+def test_get_movie_period(mocker: MockerFixture):
+    movie_path = "mock_path"
+    parser = lib.MovieParser(movie_path)
+
+    mock_fprobe_response = """[FORMAT]
+filename=DJI_0257.MP4
+nb_streams=1
+nb_programs=0
+format_name=mov,mp4,m4a,3gp,3g2,mj2
+format_long_name=QuickTime / MOV
+start_time=0.000000
+duration=51.285000
+size=664271893
+bit_rate=103620457
+probe_score=100
+TAG:major_brand=isom
+TAG:minor_version=512
+TAG:compatible_brands=isomiso2avc1mp41
+TAG:creation_time=2020-08-20T12:34:45.000000Z
+TAG:encoder=Lavf56.15.102
+[/FORMAT]"""
+    mocker.patch.object(parser, "_get_fprobe").return_value = mock_fprobe_response
+    expected_period = lib.TimePeriod(
+        datetime.datetime.fromisoformat("2020-08-20T12:34:45.000000+00:00"),
+        datetime.datetime.fromisoformat("2020-08-20T12:35:36.285000+00:00")
+    )
+
+    actual_period = parser.get_period()
+
+    assert expected_period == actual_period
+
+
+def test_parse_fprobe():
+    fprobe_output = """[FORMAT]
+filename=DJI_0257.MP4
+nb_streams=1
+nb_programs=0
+format_name=mov,mp4,m4a,3gp,3g2,mj2
+format_long_name=QuickTime / MOV
+start_time=0.000000
+duration=51.285000
+size=664271893
+bit_rate=103620457
+probe_score=100
+TAG:major_brand=isom
+TAG:minor_version=512
+TAG:compatible_brands=isomiso2avc1mp41
+TAG:creation_time=2020-08-20T12:34:45.000000Z
+TAG:encoder=Lavf56.15.102
+[/FORMAT]"""
+    parser = lib.MovieParser("")
+    parsed_fprobe = parser._parse_fprobe(fprobe_output)
+
+    assert parsed_fprobe["filename"] == "DJI_0257.MP4"
+    assert parsed_fprobe["TAG:creation_time"] == "2020-08-20T12:34:45.000000Z"
