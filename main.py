@@ -1,3 +1,4 @@
+import itertools
 import os, sys
 import logging
 import concurrent.futures
@@ -51,22 +52,21 @@ def generate_movie_subtitles(movies_path: str, gpx_path: str):
         level=logging.DEBUG,
     )
     gpx_db = get_gpx_db(gpx_path)
-    for movie_fname in os.listdir(movies_path):
-        if not movie_fname.endswith(".MP4"):
-            continue
-        movie_path = os.path.join(movies_path, movie_fname)
+    movie_paths = [
+        os.path.join(movies_path, f)
+        for f in os.listdir(movies_path)
+        if f.endswith(".MP4")
+    ]
 
-        movie_period = lib.MovieParser(movie_path).get_period()
-        logging.info("Movie is %s - %s", movie_period.start, movie_period.end)
-        movie_location = gpx_db.get_movie_location(movie_time=movie_period)
-        # logging.info("Movie located at %s", movie_location)
-        try:
-            poi = lib.POILocator(lib.GEOLocator()).get_poi(movie_location)
-        except Exception as e:
-            logging.info("Failed to get POI: no points")
-            continue
-        logging.info("Movie POI is %s", poi)
+    executor = concurrent.futures.ProcessPoolExecutor(8)
+    pois = executor.map(
+        get_movie_poi,
+        itertools.repeat(gpx_db),
+        movie_paths
+    )
 
+    for path, poi in zip(movie_paths, pois):
+        logging.info("Shot in %s: %s", poi, path)
 
     #     print(movie_fname)
     #
@@ -80,6 +80,17 @@ def generate_movie_subtitles(movies_path: str, gpx_path: str):
     #     movie_location_data,
     #     movie_filename
     # )
+
+
+def get_movie_poi(gpx_db, movie_path):
+    logging.info("Parsing %s", movie_path)
+    movie_period = lib.MovieParser(movie_path).get_period()
+    logging.info("Movie is %s - %s", movie_period.start, movie_period.end)
+    movie_location = gpx_db.get_movie_location(movie_time=movie_period)
+    if not movie_location:
+        return None
+    poi = lib.POILocator(lib.GEOLocator()).get_poi(movie_location)
+    return poi
 
 
 if __name__ == '__main__':

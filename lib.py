@@ -50,6 +50,9 @@ class POI:
 class MovieLocation:
     points: typing.List[GPXPoint]
 
+    def __bool__(self):
+        return bool(self.points)
+
 
 class GPXLoader:
     def __init__(self, gpx_contents: str):
