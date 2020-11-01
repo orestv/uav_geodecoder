@@ -26,6 +26,3 @@ class GPXDatabase:
 
     def get_location_data(self, period: TimePeriod) -> MovieLocationData:
         pass
-
-
-class Movie
