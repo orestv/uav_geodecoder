@@ -16,6 +16,11 @@ class TimePeriod:
 
 
 @dataclass
+class SubtitleMetadata:
+    pass
+
+
+@dataclass
 class MovieLocationData:
     nearest_location_name: str
 
@@ -25,4 +30,23 @@ class GPXDatabase:
         pass
 
     def get_location_data(self, period: TimePeriod) -> MovieLocationData:
+        pass
+
+
+class MovieParser:
+    def __init__(self, movie_file_path):
+        pass
+
+    def get_period(self) -> TimePeriod:
+        pass
+
+    def get_subtitle_metadata(self) -> SubtitleMetadata:
+        pass
+
+
+class SubtitleGenerator:
+    def __init__(self, subtitle_metadata: SubtitleMetadata):
+        pass
+
+    def write_subtitles(self, movie_location_data: MovieLocationData, movie_path: str):
         pass
