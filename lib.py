@@ -3,15 +3,23 @@ from dataclasses import dataclass
 
 import typing
 
+import gpxpy
+
 
 @dataclass
 class MovieDetails:
     pass
 
 
-@dataclass()
+@dataclass
+class GPXPoint:
+    latitude: float
+    longitude: float
+
+
+@dataclass
 class GPXTrackData:
-    pass
+    points: typing.List[GPXPoint]
 
 
 @dataclass
@@ -36,7 +44,15 @@ class GPXLoader:
 
     @property
     def track_data(self) -> GPXTrackData:
-        return GPXTrackData()
+        gpxp = gpxpy.parse(self.gpx_contents)
+        gpx_points = gpxp.tracks[0].segments[0].points
+        points = [
+            GPXPoint(p.latitude, p.longitude)
+            for p in gpx_points
+        ]
+        return GPXTrackData(
+            points=points
+        )
 
 
 class GPXDatabase:
