@@ -10,7 +10,7 @@ def get_gpx_paths(root: str) -> typing.List[str]:
 
 
 @click.command()
-@click.argument("movie_filename", type=click.Path)
+@click.argument("movie_filename", type=click.Path())
 def generate_movie_subtitles(movie_filename: str):
     gpx_paths = get_gpx_paths(".")
     gpx_db = lib.GPXDatabase(gpx_paths)
