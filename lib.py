@@ -15,12 +15,15 @@ class MovieDetails:
 class GPXPoint:
     latitude: float
     longitude: float
+    time: datetime.datetime
 
 
 @dataclass
 class GPXTrackData:
     points: typing.List[GPXPoint]
     starting_point: GPXPoint
+    start_time: datetime.datetime
+    end_time: datetime.datetime
 
 
 @dataclass
@@ -48,12 +51,14 @@ class GPXLoader:
     def track_data(self) -> GPXTrackData:
         gpx_points = self._parsed_gpx.tracks[0].segments[0].points
         points = [
-            GPXPoint(p.latitude, p.longitude)
+            GPXPoint(p.latitude, p.longitude, p.time)
             for p in gpx_points
         ]
         return GPXTrackData(
             points=points,
-            starting_point=points[0]
+            starting_point=points[0],
+            start_time=points[0].time,
+            end_time=points[-1].time,
         )
 
 
