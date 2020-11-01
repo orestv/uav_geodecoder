@@ -1,4 +1,5 @@
 import datetime
+import itertools
 from dataclasses import dataclass
 
 import typing
@@ -63,11 +64,20 @@ class GPXLoader:
 
 
 class GPXDatabase:
-    def __init__(self, gpx_files: typing.List[str]):
-        pass
+    def __init__(self, tracks: typing.List[GPXTrackData]):
+        self.tracks = tracks
+        chained_tracks: typing.Iterable[GPXPoint] = itertools.chain(*(t.points for t in self.tracks))
+        self.chained_tracks: typing.Iterable[GPXPoint] = sorted(chained_tracks, key=lambda p: p.time)
 
     def get_movie_location(self, movie_time: TimePeriod) -> MovieLocation:
-        pass
+        matching_points = [
+            p
+            for p in self.chained_tracks
+            if movie_time.start <= p.time <= movie_time.end
+        ]
+        return MovieLocation(
+            points=matching_points
+        )
 
 
 class MovieParser:
