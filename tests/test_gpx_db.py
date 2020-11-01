@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import pytest
 import typing
 
-from pytest_mock import MockerFixture
+from pytest_mock import MockerFixture, mock
 
 import lib
 
@@ -39,6 +39,11 @@ def gpx_tracks(gpx_contents, gpx_contents_2):
 @pytest.fixture
 def gpx_db(gpx_tracks) -> lib.GPXDatabase:
     return lib.GPXDatabase(gpx_tracks)
+
+
+@pytest.fixture
+def mocked_geolocator(mocker: MockerFixture):
+    return mocker.Mock()
 
 
 def test_gpx_loader_correct_gpx_loaded(gpx_test: GPXTestCase):
@@ -103,15 +108,24 @@ def test_gpx_movie_points(gpx_db: lib.GPXDatabase, movie_time, expected_movie_lo
     assert actual_movie_location == expected_movie_location
 
 
-def test_get_poi(mocker: MockerFixture, movie_location: lib.MovieLocation):
-    expected_poi = lib.POI(city="Lviv")
-    mock_get_coord = mocker.patch("reverse_geocode.get")
-    mock_get_coord.return_value = {'country_code': 'UA', 'city': 'Lviv', 'country': 'Ukraine'}
+def test_get_poi(mocked_geolocator: mock.Mock, movie_location: lib.MovieLocation):
+    locator = lib.POILocator(mocked_geolocator)
 
-    locator = lib.POILocator()
+    expected_poi = lib.POI(city="Lviv")
+    mocked_geolocator.get_poi.return_value = expected_poi
+
     actual_poi = locator.get_poi(movie_location)
     assert actual_poi == expected_poi
 
-    mock_get_coord.assert_called_with(
-        (movie_location.points[0].longitude, movie_location.points[0].latitude,)
-    )
+    mocked_geolocator.get_poi.assert_called_with(movie_location.points[0])
+
+
+def test_get_poi_for_point(mocker: MockerFixture):
+    point = lib.GPXPoint(49.2351317723592, 28.4581775814941, datetime.datetime.utcnow())
+    mocked_response = {'country_code': 'UA', 'city': 'Lviv', 'country': 'Ukraine'}
+    mocker.patch("reverse_geocode.get").return_value = mocked_response
+
+    expected_poi = lib.POI(city="Lviv")
+
+    actual_poi = lib.GEOLocator().get_poi(point)
+    assert actual_poi == expected_poi

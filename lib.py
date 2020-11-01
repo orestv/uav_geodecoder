@@ -86,13 +86,21 @@ class GPXDatabase:
         )
 
 
-class POILocator:
-    def get_poi(self, movie_location: MovieLocation) -> POI:
-        first_point = movie_location.points[0]
+class GEOLocator:
+    def get_poi(self, point: GPXPoint) -> POI:
         lookup_result = reverse_geocode.get(
-            (first_point.longitude, first_point.latitude)
+            (point.longitude, point.latitude)
         )
         return POI(city=lookup_result["city"])
+
+
+class POILocator:
+    def __init__(self, geolocator: GEOLocator):
+        self.geolocator = geolocator
+
+    def get_poi(self, movie_location: MovieLocation) -> POI:
+        first_point = movie_location.points[0]
+        return self.geolocator.get_poi(first_point)
 
 
 class MovieParser:
