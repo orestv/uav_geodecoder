@@ -1,3 +1,4 @@
+import bisect
 import datetime
 import itertools
 import os
@@ -37,13 +38,15 @@ class TimePeriod:
 
 
 @dataclass
-class SubtitleMetadata:
-    pass
+class POI:
+    city: str
 
 
 @dataclass
-class POI:
-    city: str
+class SubtitleMetadata:
+    poi: POI
+    start_time: datetime.datetime
+    movie_duration: datetime.timedelta
 
 
 @dataclass
@@ -63,7 +66,7 @@ class GPXLoader:
     def track_data(self) -> GPXTrackData:
         gpx_points = self._parsed_gpx.tracks[0].segments[0].points
         points = [
-            GPXPoint(p.latitude, p.longitude, p.time)
+            GPXPoint(p.latitude, p.longitude, p.time + datetime.timedelta(hours=1))
             for p in gpx_points
         ]
         return GPXTrackData(
@@ -146,14 +149,21 @@ class MovieParser:
             result[key] = value
         return result
 
-    def get_subtitle_metadata(self) -> SubtitleMetadata:
-        pass
-
 
 class SubtitleGenerator:
-    def __init__(self, subtitle_metadata: SubtitleMetadata):
-        pass
+    def __init__(self, metadata: SubtitleMetadata):
+        self.metadata = metadata
 
-    # todo: add another layer before this to convert MovieLocation into something verbose.
-    def write_subtitles(self, movie_location: MovieLocation, movie_path: str):
-        pass
+    def _get_contents(self):
+        duration = self.metadata.movie_duration.total_seconds()
+        formatted_duration = "0" + str(datetime.timedelta(seconds=duration))
+
+        sub = f"{self.metadata.start_time} - {self.metadata.poi.city}"
+
+        return f"""1
+00:00:00.000000 --> {formatted_duration}
+{sub}"""
+
+    def write(self, path: str):
+        with open(path, "w") as f:
+            f.write(self._get_contents())

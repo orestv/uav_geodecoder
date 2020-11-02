@@ -20,7 +20,8 @@ def load_gpx(p):
 def get_gpx_db(root: str) -> lib.GPXDatabase:
     import pickle
     try:
-        with open("db.pickle", "rb") as f:
+        with open("/tmp/db.pickle", "rb") as f:
+            logging.info("Reading GPX DB from pickle...")
             return pickle.load(f)
     except Exception as e:
         logging.exception(e)
@@ -38,7 +39,7 @@ def get_gpx_db(root: str) -> lib.GPXDatabase:
     ]
 
     db = lib.GPXDatabase(tracks)
-    with open("db.pickle", "wb") as f:
+    with open("/tmp/db.pickle", "wb") as f:
         pickle.dump(db, f)
     return db
 
@@ -58,15 +59,20 @@ def generate_movie_subtitles(movies_path: str, gpx_path: str):
         if f.endswith(".MP4")
     ]
 
-    executor = concurrent.futures.ProcessPoolExecutor(8)
-    pois = executor.map(
-        get_movie_poi,
-        itertools.repeat(gpx_db),
-        movie_paths
-    )
+    movie_paths = reversed(sorted(movie_paths))
 
-    for path, poi in zip(movie_paths, pois):
-        logging.info("Shot in %s: %s", poi, path)
+    for path in movie_paths:
+        try:
+            sub_metadata = get_subtitle(gpx_db, path)
+        except Exception as e:
+            logging.exception(e)
+            logging.error("Could not process %s", path)
+            continue
+        if not sub_metadata:
+            continue
+        logging.info("Shot in %s: %s", sub_metadata.poi, path)
+        sub_path = path.replace(".MP4", ".srt")
+        lib.SubtitleGenerator(sub_metadata).write(sub_path)
 
     #     print(movie_fname)
     #
@@ -82,7 +88,7 @@ def generate_movie_subtitles(movies_path: str, gpx_path: str):
     # )
 
 
-def get_movie_poi(gpx_db, movie_path):
+def get_subtitle(gpx_db, movie_path):
     logging.info("Parsing %s", movie_path)
     movie_period = lib.MovieParser(movie_path).get_period()
     logging.info("Movie is %s - %s", movie_period.start, movie_period.end)
@@ -90,7 +96,10 @@ def get_movie_poi(gpx_db, movie_path):
     if not movie_location:
         return None
     poi = lib.POILocator(lib.GEOLocator()).get_poi(movie_location)
-    return poi
+    md = lib.SubtitleMetadata(
+        poi, movie_period.start, movie_period.end - movie_period.start
+    )
+    return md
 
 
 if __name__ == '__main__':
